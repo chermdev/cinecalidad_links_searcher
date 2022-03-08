@@ -91,16 +91,20 @@ if __name__ == '__main__':
         console.print(table)
         print("\n")
         console.print("Loading Download Options... ", end="\r")
-        table = Table(title="Download Options                 ",
-                      box=box.SQUARE, title_justify="left", expand=False, show_lines=True)
-        table.add_column("No.", style="bright_white", vertical="middle")
-        table.add_column("Server", style="bright_white", vertical="middle")
-        table.add_column("Link", style="bright_cyan",
-                         overflow="fold", vertical="middle")
+        # table = Table(title="Download Options                 ",
+        #               box=box.SQUARE, title_justify="left", expand=False, show_lines=True)
+        # table.add_column("No.", style="bright_white", vertical="middle")
+        # table.add_column("Server", style="bright_white", vertical="middle")
+        # table.add_column("Link", style="bright_cyan",
+        #                  overflow="fold", vertical="middle")
         download_severs = movie_selected.download_options
+        console.print(
+            f">> {len(download_severs)} download options found...       \n")
         for n, download_opt in enumerate(download_severs, start=1):
-            table.add_row(f"[[bright_cyan]{n}[/]]",
-                          download_opt.name, download_opt.link)
-        console.print(table)
+            console.print(f"[[bright_cyan]{n}[/]] - {download_opt.name}")
+            console.print(download_opt.link)
+            # table.add_row(f"[[bright_cyan]{n}[/]]",
+            #               download_opt.name, download_opt.link)
+        # console.print(table)
         input('Press ENTER to exit')
         sys.exit()
