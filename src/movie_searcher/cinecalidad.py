@@ -5,9 +5,11 @@ from configparser import ConfigParser
 from src.exceptions import *
 import os
 import bs4
+import base64
 import requests
 import urllib.parse
 import urllib.request
+
 
 config = ConfigParser()
 config.read('config.ini')
@@ -97,32 +99,34 @@ def _get_movie_objs(html_code, search_movie) -> List[MovieObj]:
     movies = []
     for article in articles:
         movie_title = (
-            article.find("header").find("h2").contents[0]
-            if len(article.find("header").find("h2").contents) > 0
+            article.find("h2").contents[0]
+            if len(article.find("h2").contents) > 0
             else ""
         )
-        duration = (
-            article.find("header").find_all("span")[0].contents[0]
-            if len(article.find("header").find_all("span")[0].contents) > 0
-            else ""
-        )
-        categories = (
-            [
-                category.strip()
-                for category in article.find("header")
-                .find_all("span")[2]
-                .contents[0]
-                .split("/")
-            ]
-            if len(article.find("header").find_all("span")[2].contents) > 0
-            else []
-        )
+        # duration = (
+        #     article.find("header").find_all("span")[0].contents[0]
+        #     if len(article.find("header").find_all("span")[0].contents) > 0
+        #     else ""
+        # )
+        duration = ""
+        # categories = (
+        #     [
+        #         category.strip()
+        #         for category in article.find("header")
+        #         .find_all("span")[2]
+        #         .contents[0]
+        #         .split("/")
+        #     ]
+        #     if len(article.find("header").find_all("span")[2].contents) > 0
+        #     else []
+        # )
+        categories = ""
         description = (
-            article.find("header").find("div").find("p").contents[0]
-            if len(article.find("header").find("div").find("p").contents) > 0
+            article.find("p").contents[0]
+            if len(article.find("p").contents) > 0
             else ""
         )
-        url = article.find_all("p")[2].find("a").get("href")
+        url = article.find("a").get("href")
         coincidence = SequenceMatcher(None, search_movie, movie_title).ratio()
         if search_movie.lower() in movie_title.lower():
             movies.append(
@@ -150,11 +154,7 @@ def _get_link_from_protected_download_page(url):
                                              html_save_path=protected_link_page_html_path)
     soup = bs4.BeautifulSoup(
         protected_link_html, features="lxml")
-    if not soup.find('header').find('input'):
-        download_link = soup.find('header').find_all('p')[
-            1].find('a').get('href')
-    else:
-        download_link = soup.find('header').find('input').get('value')
+    download_link = soup.find('div', id='contenido').find('a').get('href')
     return download_link
 
 
@@ -173,15 +173,16 @@ def _get_download_links_from_movie_page(url) -> List[DownloadLinkProtected]:
     soup = bs4.BeautifulSoup(html_downloads_code, features="lxml")
 
     download_opts = []
-    for download_btn in soup.find('div', class_="downloads-lst").find_all('a'):
-        download_name = download_btn.find_all('span')[1].contents[0].split()[-1] if len(
-            download_btn.find_all('span')[1].contents) > 0 else ""
-
+    for download_btn in [download_btn for download_btn in soup.find_all('a') if 'data-url' in download_btn.attrs]:
+        download_name = download_btn.text
+        data_url: str = download_btn.get('data-url')
+        data_bytes = data_url.encode('ascii')
+        download_url = base64.b64decode(data_bytes).decode('ascii')
         download_opts.append(
             DownloadLinkProtected(
                 download_name,
                 _get_link_from_protected_download_page(
-                    download_btn.get('href'))
+                    download_url)
             )
         )
 

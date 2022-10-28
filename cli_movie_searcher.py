@@ -65,11 +65,13 @@ if __name__ == '__main__':
             table.add_row(f"[[bright_green]#{n}[/]]",
                           movie_info, movie.description, )
         console.print(table)
+        ans = None
         if len(movies_found) > 1:
-            ans = console.input(
-                "[yellow](exit with 'q')[/] Select a movie Number: [bright_green]#[/]")
-            if ans == 'q':
-                sys.exit()
+            while not ans:
+                ans = console.input(
+                    "[yellow](exit with 'q')[/] Select a movie Number: [bright_green]#[/]")
+                if ans == 'q':
+                    sys.exit()
         else:
             ans = 1
         movie_selected = movies_found[int(ans)-1]
